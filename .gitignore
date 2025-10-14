@@ -44,3 +44,6 @@ next-env.d.ts
 
 # temporary audio files
 /temp_audio
+
+# output audio files
+/output

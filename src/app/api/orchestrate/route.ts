@@ -1,4 +1,8 @@
-import { podcastAssemblyPlanSchema } from "@/app/const/pap";
+import {
+  podcastAssemblyPlanSchema,
+  validatePAP,
+  getValidationErrorMessages,
+} from "@/app/const/pap";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
@@ -24,19 +28,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate the PAP structure
-    const validationResult = podcastAssemblyPlanSchema.safeParse(body);
+    const validationResult = validatePAP(body);
 
     if (!validationResult.success) {
+      const errorMessages = getValidationErrorMessages(
+        validationResult.errors!
+      );
+      console.error("❌ PAP Validation Failed:");
+      errorMessages.forEach((msg) => console.error(`  - ${msg}`));
+
       return NextResponse.json(
         {
           error: "Invalid Podcast Assembly Plan format",
-          details: validationResult.error.errors,
+          details: validationResult.errors,
+          messages: errorMessages,
         },
         { status: 400 }
       );
     }
 
-    const pap = validationResult.data;
+    const pap = validationResult.data!;
 
     console.log("=".repeat(60));
     console.log("PODCAST ORCHESTRATION PLAN");

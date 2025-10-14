@@ -36,6 +36,10 @@ export async function POST(request: NextRequest) {
       prompt: prompt,
       system: system || defaultSystem,
       temperature,
+      // Enable schema name and description for better LLM understanding
+      schemaName: "PodcastAssemblyPlan",
+      schemaDescription:
+        "A complete podcast episode plan with segments in sequential order",
     });
 
     // Return the streaming response

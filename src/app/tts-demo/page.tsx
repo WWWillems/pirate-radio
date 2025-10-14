@@ -4,7 +4,26 @@ import { useState } from 'react';
 
 export default function TextToSpeechDemo() {
   const [systemPrompt, setSystemPrompt] = useState(
-    'You are a creative radio host who writes engaging and entertaining Podcast Assembly Plans (PAP). The podcast assembly plan describes the structure and timeline for the generated podcast in a predefined JSON format.'
+    `You are a creative radio host who writes engaging and entertaining Podcast Assembly Plans (PAP). The podcast assembly plan describes the structure and timeline for the generated podcast in a predefined JSON format.
+    
+    You are an expert podcast producer. Generate a detailed Podcast Assembly Plan (PAP) that strictly adheres to the following requirements:
+
+    SEGMENT TYPES:
+    1. dialogue - Requires: speaker (e.g., HOST, WILLIAM, HAROLD), text, and tts_voice
+    2. music - Requires: role (intro_jingle/background/outro_jingle/transition), prompt, and engine (sora/udio/elevenlabs)
+    3. ad - Requires: text and tts_voice
+
+    VALID TTS VOICES: alloy, echo, fable, onyx, nova, shimmer, verse, coral
+
+    IMPORTANT RULES:
+    - Every dialogue segment MUST have a tts_voice field
+    - Every ad segment MUST have a tts_voice field
+    - Each segment MUST have a unique id
+    - Use consistent speakers throughout the episode
+    - Assign distinct voices to different speakers for variety
+
+    Be creative and engaging while maintaining the schema structure.
+    `
   );
   const [prompt, setPrompt] = useState(
     'Generate a concise script for a radio show about Nova Scotia, Canada.'
@@ -23,6 +42,8 @@ export default function TextToSpeechDemo() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [orchestrating, setOrchestrating] = useState(false);
   const [orchestrationResult, setOrchestrationResult] = useState<any>(null);
+  const [stitching, setStitching] = useState(false);
+  const [stitchResult, setStitchResult] = useState<any>(null);
 
   const voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
   const models = ['tts-1', 'tts-1-hd'];
@@ -227,6 +248,49 @@ export default function TextToSpeechDemo() {
     }
   };
 
+  const stitch = async () => {
+    setStitching(true);
+    setError(null);
+    setStitchResult(null);
+
+    try {
+      // Extract episode name and segment IDs from orchestration result
+      const episodeName = orchestrationResult?.summary?.title || 'episode';
+      
+      // Extract segment IDs from the orchestration result
+      let segmentIds: string[] | null = null;
+      if (orchestrationResult?.results && Array.isArray(orchestrationResult.results)) {
+        segmentIds = orchestrationResult.results
+          .filter((result: any) => result.success && result.audio_file)
+          .map((result: any) => result.segment_id);
+      }
+
+      const response = await fetch('/api/stitch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          episode_name: episodeName,
+          segment_ids: segmentIds,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to stitch audio');
+      }
+
+      setStitchResult(data);
+    } catch (err: any) {
+      console.error('Error stitching:', err);
+      setError(err.message || 'Failed to stitch audio');
+    } finally {
+      setStitching(false);
+    }
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">🏴‍☠️ Pirate Radio</h1>
@@ -386,6 +450,37 @@ export default function TextToSpeechDemo() {
                 <p>
                   <strong>Breakdown:</strong> {orchestrationResult.summary.segment_breakdown.dialogue} dialogue, {orchestrationResult.summary.segment_breakdown.music} music, {orchestrationResult.summary.segment_breakdown.ads} ads
                 </p>
+              )}
+            </div>
+            <button
+              onClick={stitch}
+              disabled={stitching}
+              className="mt-3 bg-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition text-sm"
+            >
+              {stitching ? '🎵 Stitching...' : '🎵 Stitch Audio'}
+            </button>
+          </div>
+        )}
+
+        {/* Stitch Result Display */}
+        {stitchResult && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="font-semibold text-blue-800 mb-2">
+              🎉 Stitching Complete!
+            </h3>
+            <div className="text-sm text-blue-700 space-y-1">
+              <p><strong>Filename:</strong> {stitchResult.filename}</p>
+              <p><strong>Size:</strong> {(stitchResult.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p><strong>Files Stitched:</strong> {stitchResult.files_stitched}</p>
+              {stitchResult.source_files && (
+                <div className="mt-2">
+                  <p><strong>Source Files:</strong></p>
+                  <ul className="list-disc list-inside ml-2">
+                    {stitchResult.source_files.map((file: string, index: number) => (
+                      <li key={index}>{file}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           </div>

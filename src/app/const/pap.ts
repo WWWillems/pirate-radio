@@ -3,12 +3,21 @@ import { z } from "zod";
 // Define the Podcast Assembly Plan (PAP) schema
 export const segmentSchema = z.discriminatedUnion("type", [
   z.object({
-    id: z.string().describe("Unique identifier for this segment"),
+    id: z
+      .string()
+      .describe(
+        "Unique identifier for this segment (e.g., 'segment-1', 'episode-001-dialogue-01')"
+      ),
     type: z.literal("dialogue"),
     speaker: z
       .string()
-      .describe("The speaker name (e.g., HOST, WILLIAM, HAROLD)"),
-    text: z.string().describe("The dialogue text"),
+      .describe(
+        "The speaker name - use consistent identifiers like HOST, GUEST, WILLIAM, HAROLD, etc."
+      ),
+    text: z
+      .string()
+      .min(1)
+      .describe("The dialogue text to be spoken - should be clear and natural"),
     tts_voice: z
       .enum([
         "alloy",
@@ -20,24 +29,41 @@ export const segmentSchema = z.discriminatedUnion("type", [
         "verse",
         "coral",
       ])
-      .describe("The TTS voice to use"),
+      .describe(
+        "REQUIRED: The TTS voice to use. Assign consistent voices per speaker for continuity."
+      ),
   }),
   z.object({
-    id: z.string().describe("Unique identifier for this segment"),
+    id: z
+      .string()
+      .describe(
+        "Unique identifier for this segment (e.g., 'segment-5', 'episode-001-music-01')"
+      ),
     type: z.literal("music"),
     role: z
       .enum(["intro_jingle", "background", "outro_jingle", "transition"])
-      .describe("The role of the music"),
-    prompt: z.string().describe("The music generation prompt"),
+      .describe(
+        "The role of the music: intro_jingle (start), outro_jingle (end), transition (between segments), background (under dialogue)"
+      ),
+    prompt: z
+      .string()
+      .min(1)
+      .describe(
+        "Descriptive prompt for music generation (e.g., 'upbeat jazz intro', 'gentle acoustic transition')"
+      ),
     engine: z
       .enum(["sora", "udio", "elevenlabs"])
       .default("sora")
-      .describe("The music generation engine"),
+      .describe("The music generation engine to use"),
   }),
   z.object({
-    id: z.string().describe("Unique identifier for this segment"),
+    id: z
+      .string()
+      .describe(
+        "Unique identifier for this segment (e.g., 'segment-8', 'episode-001-ad-01')"
+      ),
     type: z.literal("ad"),
-    text: z.string().describe("The advertisement text"),
+    text: z.string().min(1).describe("The advertisement text to be spoken"),
     tts_voice: z
       .enum([
         "alloy",
@@ -49,17 +75,73 @@ export const segmentSchema = z.discriminatedUnion("type", [
         "verse",
         "coral",
       ])
-      .describe("The TTS voice to use"),
+      .describe(
+        "REQUIRED: The TTS voice to use for the advertisement (typically a distinct voice)"
+      ),
   }),
 ]);
 
 export const podcastAssemblyPlanSchema = z.object({
   episode_id: z
     .string()
-    .describe("Unique episode identifier (e.g., date in YYYY-MM-DD format)"),
-  title: z.string().describe("The episode title"),
-  description: z.string().describe("The episode description"),
+    .min(1)
+    .describe(
+      "Unique episode identifier (e.g., date in YYYY-MM-DD format or episode number)"
+    ),
+  title: z
+    .string()
+    .min(1)
+    .describe("The episode title - should be clear and engaging"),
+  description: z
+    .string()
+    .min(1)
+    .describe("The episode description - a brief summary of the content"),
   segments: z
     .array(segmentSchema)
-    .describe("Array of podcast segments in order"),
+    .min(1)
+    .describe(
+      "Array of podcast segments in sequential order - must include at least one segment"
+    ),
 });
+
+// Export TypeScript types
+export type Segment = z.infer<typeof segmentSchema>;
+export type PodcastAssemblyPlan = z.infer<typeof podcastAssemblyPlanSchema>;
+
+// Type guards for runtime type checking
+export type DialogueSegment = Extract<Segment, { type: "dialogue" }>;
+export type MusicSegment = Extract<Segment, { type: "music" }>;
+export type AdSegment = Extract<Segment, { type: "ad" }>;
+
+/**
+ * Helper function to validate a PAP and return detailed error information
+ */
+export function validatePAP(data: unknown): {
+  success: boolean;
+  data?: PodcastAssemblyPlan;
+  errors?: z.ZodIssue[];
+} {
+  const result = podcastAssemblyPlanSchema.safeParse(data);
+
+  if (result.success) {
+    return {
+      success: true,
+      data: result.data,
+    };
+  }
+
+  return {
+    success: false,
+    errors: result.error.issues,
+  };
+}
+
+/**
+ * Get human-readable validation errors
+ */
+export function getValidationErrorMessages(errors: z.ZodIssue[]): string[] {
+  return errors.map((error) => {
+    const path = error.path.join(".");
+    return `${path}: ${error.message}`;
+  });
+}

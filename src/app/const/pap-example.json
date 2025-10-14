@@ -1,0 +1,119 @@
+{
+  "episode_id": "2024-01-15",
+  "title": "Example Podcast Episode",
+  "description": "A well-formed example of a Podcast Assembly Plan that adheres to the schema",
+  "segments": [
+    {
+      "id": "segment-1",
+      "type": "music",
+      "role": "intro_jingle",
+      "prompt": "upbeat energetic intro music with electronic beats",
+      "engine": "sora"
+    },
+    {
+      "id": "segment-2",
+      "type": "dialogue",
+      "speaker": "HOST",
+      "text": "Welcome to our show! Today we're exploring an amazing topic that you won't want to miss.",
+      "tts_voice": "nova"
+    },
+    {
+      "id": "segment-3",
+      "type": "dialogue",
+      "speaker": "HOST",
+      "text": "We'll dive deep into the details and hear from some fascinating guests.",
+      "tts_voice": "nova"
+    },
+    {
+      "id": "segment-4",
+      "type": "dialogue",
+      "speaker": "GUEST",
+      "text": "Thanks for having me! I'm excited to share my insights on this topic.",
+      "tts_voice": "onyx"
+    },
+    {
+      "id": "segment-5",
+      "type": "music",
+      "role": "transition",
+      "prompt": "gentle acoustic guitar transition",
+      "engine": "udio"
+    },
+    {
+      "id": "segment-6",
+      "type": "dialogue",
+      "speaker": "HOST",
+      "text": "Let's start by discussing the history behind this fascinating subject.",
+      "tts_voice": "nova"
+    },
+    {
+      "id": "segment-7",
+      "type": "dialogue",
+      "speaker": "GUEST",
+      "text": "The origins date back several decades, and it's evolved significantly over time.",
+      "tts_voice": "onyx"
+    },
+    {
+      "id": "segment-8",
+      "type": "ad",
+      "text": "This episode is brought to you by our sponsor. Check them out for amazing deals!",
+      "tts_voice": "echo"
+    },
+    {
+      "id": "segment-9",
+      "type": "dialogue",
+      "speaker": "HOST",
+      "text": "Now let's look at some practical applications and real-world examples.",
+      "tts_voice": "nova"
+    },
+    {
+      "id": "segment-10",
+      "type": "dialogue",
+      "speaker": "GUEST",
+      "text": "One of the most interesting examples is how this has impacted everyday life.",
+      "tts_voice": "onyx"
+    },
+    {
+      "id": "segment-11",
+      "type": "music",
+      "role": "background",
+      "prompt": "subtle ambient background music",
+      "engine": "elevenlabs"
+    },
+    {
+      "id": "segment-12",
+      "type": "dialogue",
+      "speaker": "HOST",
+      "text": "That's a great point. Can you tell us more about the future implications?",
+      "tts_voice": "nova"
+    },
+    {
+      "id": "segment-13",
+      "type": "dialogue",
+      "speaker": "GUEST",
+      "text": "Looking ahead, I think we'll see some exciting developments in this space.",
+      "tts_voice": "onyx"
+    },
+    {
+      "id": "segment-14",
+      "type": "dialogue",
+      "speaker": "HOST",
+      "text": "Thank you so much for joining us today! This has been incredibly insightful.",
+      "tts_voice": "nova"
+    },
+    {
+      "id": "segment-15",
+      "type": "dialogue",
+      "speaker": "GUEST",
+      "text": "My pleasure! Thanks for having me.",
+      "tts_voice": "onyx"
+    },
+    {
+      "id": "segment-16",
+      "type": "music",
+      "role": "outro_jingle",
+      "prompt": "uplifting outro music with a positive vibe",
+      "engine": "sora"
+    }
+  ]
+}
+
