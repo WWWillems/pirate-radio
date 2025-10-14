@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.wav
+*.mp3
+output.*
+yarn-error.log
+

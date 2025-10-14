@@ -1,0 +1,23 @@
+{
+  "name": "pirate-radio",
+  "version": "1.0.0",
+  "description": "Text-to-speech using Hugging Face Kokoro-82M model",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node index.js"
+  },
+  "keywords": [
+    "text-to-speech",
+    "huggingface",
+    "kokoro",
+    "tts"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^17.2.3"
+  }
+}
