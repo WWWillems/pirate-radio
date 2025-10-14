@@ -1,10 +1,27 @@
 import { podcastAssemblyPlanSchema } from "@/app/const/pap";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Auto-generate IDs for segments that don't have them
+    if (body.segments && Array.isArray(body.segments)) {
+      body.segments = body.segments.map((segment: any, index: number) => {
+        if (!segment.id) {
+          // Generate a predictable ID: episodeId_segmentType_index
+          const episodePrefix = body.episode_id || "episode";
+          const typePrefix = segment.type || "segment";
+          segment.id = `${episodePrefix}_${typePrefix}_${String(index).padStart(
+            3,
+            "0"
+          )}`;
+        }
+        return segment;
+      });
+    }
 
     // Validate the PAP structure
     const validationResult = podcastAssemblyPlanSchema.safeParse(body);
@@ -64,6 +81,7 @@ export async function POST(request: NextRequest) {
                 voice: segment.tts_voice,
                 model: "tts-1",
                 type: segment.type, // Send segment type
+                segment_id: segment.id, // Send unique segment ID
               }),
             });
 
@@ -139,6 +157,7 @@ export async function POST(request: NextRequest) {
                 voice: segment.tts_voice,
                 model: "tts-1",
                 type: segment.type, // Send segment type
+                segment_id: segment.id, // Send unique segment ID
               }),
             });
 

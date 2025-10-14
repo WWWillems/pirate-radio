@@ -3,6 +3,7 @@ import { z } from "zod";
 // Define the Podcast Assembly Plan (PAP) schema
 export const segmentSchema = z.discriminatedUnion("type", [
   z.object({
+    id: z.string().describe("Unique identifier for this segment"),
     type: z.literal("dialogue"),
     speaker: z
       .string()
@@ -22,6 +23,7 @@ export const segmentSchema = z.discriminatedUnion("type", [
       .describe("The TTS voice to use"),
   }),
   z.object({
+    id: z.string().describe("Unique identifier for this segment"),
     type: z.literal("music"),
     role: z
       .enum(["intro_jingle", "background", "outro_jingle", "transition"])
@@ -33,6 +35,7 @@ export const segmentSchema = z.discriminatedUnion("type", [
       .describe("The music generation engine"),
   }),
   z.object({
+    id: z.string().describe("Unique identifier for this segment"),
     type: z.literal("ad"),
     text: z.string().describe("The advertisement text"),
     tts_voice: z

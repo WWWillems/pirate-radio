@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       speed = 1.0,
       response_format = "mp3", // mp3, opus, aac, flac, wav, or pcm
       type, // Optional: segment type (dialogue, ad, etc.)
+      segment_id, // Optional: unique segment ID to use as filename
     } = body;
 
     // Validate required parameters
@@ -89,8 +90,9 @@ export async function POST(request: NextRequest) {
     // Ensure temp directory exists
     await fs.mkdir(TEMP_AUDIO_DIR, { recursive: true });
 
-    // Generate unique filename
-    const filename = `${randomUUID()}.${response_format}`;
+    // Generate unique filename - use segment_id if provided, otherwise generate random UUID
+    const fileId = segment_id || randomUUID();
+    const filename = `${fileId}.${response_format}`;
     const filepath = path.join(TEMP_AUDIO_DIR, filename);
 
     // Save the audio file to server
@@ -108,6 +110,7 @@ export async function POST(request: NextRequest) {
       voice,
       model,
       ...(type && { type }), // Include type if provided
+      ...(segment_id && { segment_id }), // Include segment_id if provided
     });
   } catch (error: any) {
     console.error("Error generating speech:", error);
