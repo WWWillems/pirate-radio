@@ -1,105 +1,36 @@
-# Pirate Radio - Text-to-Speech with Kokoro-82M
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A Node.js script that uses [fal.ai](https://fal.ai/) to generate speech from text using the [hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) text-to-speech model.
+## Getting Started
 
-**Kokoro-82M** is an open-weight TTS model with 82 million parameters, delivering high-quality speech synthesis with Apache-licensed weights. It's fast, cost-efficient (under $1/M characters), and supports 54 voices across 8 languages.
-
-## Setup
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-2. **Configure API Key:**
-   - Create a `.env` file in the project root
-   - Get your API key from [fal.ai](https://fal.ai/dashboard/keys) (sign up is free)
-   - Add your key to the `.env` file:
-     ```
-     FAL_KEY=your_fal_key_here
-     ```
-
-## Usage
-
-### Basic usage (uses default text and voice):
-```bash
-npm start
-```
-
-### Custom text:
-```bash
-node index.js "Your custom text here"
-```
-
-### Custom text with custom output filename:
-```bash
-node index.js "Your custom text here" "my-audio.wav"
-```
-
-### Custom text, filename, and voice:
-```bash
-node index.js "Your custom text here" "my-audio.wav" "af_bella"
-```
-
-## Available Voices
-
-The model includes **54 voices** across **8 languages**. Some examples:
-- `af_heart` (default) - American Female
-- `af_bella`, `af_sarah` - Other American Female voices
-- `am_adam`, `am_michael` - American Male voices  
-- `bf_emma`, `bf_isabella` - British Female voices
-- `bm_george`, `bm_lewis` - British Male voices
-
-See the full list at [VOICES.md](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md)
-
-## Examples
+First, run the development server:
 
 ```bash
-# Pirate greeting with default voice
-node index.js "Ahoy, matey! Welcome to Pirate Radio!" "pirate-greeting.wav"
-
-# British accent
-node index.js "Good day, mate!" "british.wav" "bm_george"
-
-# Different female voice
-node index.js "Hello from Kokoro!" "hello.wav" "af_bella"
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Features
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- ✨ Simple and easy to use
-- 🎙️ High-quality text-to-speech using Kokoro-82M (82M parameters)
-- 🗣️ **54 voices** across **8 languages**
-- 💾 Saves audio output to WAV files (24kHz)
-- 🔧 Configurable via command-line arguments
-- ⚡ Fast and cost-efficient (under $1/M characters)
-- 📜 Apache-licensed model
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## API
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-The script exports a `textToSpeech` function that can be imported:
+## Learn More
 
-```javascript
-import { textToSpeech } from './index.js';
+To learn more about Next.js, take a look at the following resources:
 
-await textToSpeech('Hello world!', 'hello.wav', 'af_heart');
-```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Requirements
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- Node.js 18+ (ES modules & native fetch support)
-- fal.ai API key (free tier available)
+## Deploy on Vercel
 
-## Model Information
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-- **Architecture:** StyleTTS 2 + ISTFTNet
-- **Parameters:** 82 million
-- **Training Cost:** ~$1000 (1000 GPU hours)
-- **License:** Apache 2.0
-- **Cost:** Under $1 per million characters (~$0.06 per hour of audio)
-- **GitHub:** https://github.com/hexgrad/kokoro
-- **Demo:** https://hf.co/spaces/hexgrad/Kokoro-TTS
-- **Provider:** fal.ai (official inference provider)
-
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
