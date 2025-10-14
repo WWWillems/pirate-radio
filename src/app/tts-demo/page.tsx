@@ -3,8 +3,14 @@
 import { useState } from 'react';
 
 export default function TextToSpeechDemo() {
+  const [systemPrompt, setSystemPrompt] = useState(
+    'You are a creative radio host who writes engaging and entertaining Podcast Assembly Plans (PAP). The podcast assembly plan describes the structure and timeline for the generated podcast in a predefined JSON format.'
+  );
+  const [prompt, setPrompt] = useState(
+    'Generate a concise script for a radio show about Nova Scotia, Canada.'
+  );
   const [text, setText] = useState(
-    'Hello! This is a demo of OpenAI text to speech.'
+    ''
   );
   const [voice, setVoice] = useState('alloy');
   const [model, setModel] = useState('tts-1');
@@ -15,6 +21,8 @@ export default function TextToSpeechDemo() {
   const [error, setError] = useState<string | null>(null);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [orchestrating, setOrchestrating] = useState(false);
+  const [orchestrationResult, setOrchestrationResult] = useState<any>(null);
 
   const voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
   const models = ['tts-1', 'tts-1-hd'];
@@ -33,7 +41,7 @@ export default function TextToSpeechDemo() {
     }
 
     try {
-      const response = await fetch('/api/tts', {
+      const response = await fetch('/api/tts-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +103,7 @@ export default function TextToSpeechDemo() {
     setError(null);
 
     try {
-      const response = await fetch('/api/tts', {
+      const response = await fetch('/api/tts-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,13 +146,14 @@ export default function TextToSpeechDemo() {
     setText(''); // Clear the text field
 
     try {
-      const response = await fetch('/api/generate', {
+      const response = await fetch('/api/generate-pap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: 'Generate a creative and interesting pirate-themed story or message in 2-3 sentences.',
+          prompt: prompt,
+          system: systemPrompt,
           temperature: 0.8,
           maxTokens: 150,
         }),
@@ -181,11 +190,89 @@ export default function TextToSpeechDemo() {
     }
   };
 
+  const orchestrate = async () => {
+    setOrchestrating(true);
+    setError(null);
+    setOrchestrationResult(null);
+
+    try {
+      // Parse the JSON text
+      let parsedText;
+      try {
+        parsedText = JSON.parse(text);
+      } catch (parseError) {
+        throw new Error('Invalid JSON format. Please ensure the text is valid JSON.');
+      }
+
+      const response = await fetch('/api/orchestrate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(parsedText),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to orchestrate');
+      }
+
+      setOrchestrationResult(data);
+    } catch (err: any) {
+      console.error('Error orchestrating:', err);
+      setError(err.message || 'Failed to orchestrate');
+    } finally {
+      setOrchestrating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">🏴‍☠️ Pirate Radio</h1>
 
       <div className="space-y-6">
+        {/* System Prompt Input */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            System Prompt
+          </label>
+          <textarea
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            className="w-full p-3 border rounded-lg min-h-20"
+            placeholder="Define the AI's role and behavior..."
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            {systemPrompt.length} characters
+          </p>
+        </div>
+
+        {/* Prompt Input */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Generation Prompt
+          </label>
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="w-full p-3 border rounded-lg min-h-24"
+            placeholder="Enter a prompt for text generation..."
+          />
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-sm text-gray-500">
+              {prompt.length} characters
+            </p>
+            <button
+              onClick={generateText}
+              disabled={generating || !prompt.trim()}
+              className="bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition text-sm"
+            >
+              {generating ? '✨ Generating...' : '✨ Generate Text'}
+            </button>
+          </div>
+        </div>
+
         {/* Text Input */}
         <div>
           <label className="block text-sm font-medium mb-2">
@@ -203,11 +290,11 @@ export default function TextToSpeechDemo() {
               {text.length} / 4096 characters
             </p>
             <button
-              onClick={generateText}
-              disabled={generating}
-              className="bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition text-sm"
+              onClick={orchestrate}
+              disabled={orchestrating || !text.trim()}
+              className="bg-orange-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition text-sm"
             >
-              {generating ? '✨ Generating...' : '✨ Generate Text'}
+              {orchestrating ? '🎬 Orchestrating...' : '🎬 Orchestrate'}
             </button>
           </div>
         </div>
@@ -282,6 +369,25 @@ export default function TextToSpeechDemo() {
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
             {error}
+          </div>
+        )}
+
+        {/* Orchestration Result Display */}
+        {orchestrationResult && (
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h3 className="font-semibold text-green-800 mb-2">
+              ✅ Orchestration Successful
+            </h3>
+            <div className="text-sm text-green-700 space-y-1">
+              <p><strong>Episode ID:</strong> {orchestrationResult.summary?.episode_id}</p>
+              <p><strong>Title:</strong> {orchestrationResult.summary?.title}</p>
+              <p><strong>Total Segments:</strong> {orchestrationResult.summary?.total_segments}</p>
+              {orchestrationResult.summary?.segment_breakdown && (
+                <p>
+                  <strong>Breakdown:</strong> {orchestrationResult.summary.segment_breakdown.dialogue} dialogue, {orchestrationResult.summary.segment_breakdown.music} music, {orchestrationResult.summary.segment_breakdown.ads} ads
+                </p>
+              )}
+            </div>
           </div>
         )}
 

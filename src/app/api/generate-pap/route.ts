@@ -1,6 +1,8 @@
+import { podcastAssemblyPlanSchema } from "@/app/const/pap";
 import { openai } from "@ai-sdk/openai";
-import { streamText } from "ai";
+import { streamObject } from "ai";
 import { NextRequest } from "next/server";
+import { z } from "zod";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -12,7 +14,7 @@ export async function POST(request: NextRequest) {
       prompt,
       model = "gpt-4o-mini", // Default to gpt-4o-mini for cost efficiency
       temperature = 0.7,
-      maxTokens = 1000,
+      maxTokens = 2000,
       system,
     } = body;
 
@@ -24,19 +26,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create the streaming response using Vercel AI SDK
-    const result = streamText({
+    // Default system message for podcast generation if none provided
+    const defaultSystem = `You are an expert podcast producer. Generate a detailed Podcast Assembly Plan (PAP) that includes dialogue segments with appropriate character voices, music cues for intro/outro/background, and any ad breaks. Be creative and engaging while maintaining historical or topical accuracy.`;
+
+    // Create the streaming response using Vercel AI SDK with structured output
+    const result = streamObject({
       model: openai(model),
+      schema: podcastAssemblyPlanSchema,
       prompt: prompt,
-      ...(system && { system }), // Optional system message
+      system: system || defaultSystem,
       temperature,
-      maxOutputTokens: maxTokens,
     });
 
     // Return the streaming response
     return result.toTextStreamResponse();
   } catch (error: any) {
-    console.error("Error generating text:", error);
+    console.error("Error generating podcast plan:", error);
 
     // Handle various error cases
     if (error?.status === 401 || error?.message?.includes("API key")) {
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     return new Response(
       JSON.stringify({
-        error: "Failed to generate text",
+        error: "Failed to generate podcast plan",
         details: error?.message || "Unknown error",
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
