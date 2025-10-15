@@ -47,3 +47,6 @@ next-env.d.ts
 
 # output audio files
 /output
+
+# google service account key
+pirate-radio-475214-4efc1f3d109f.json 

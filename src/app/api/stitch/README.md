@@ -98,13 +98,16 @@ curl -X POST http://localhost:3000/api/stitch \
 
 1. Reads audio files from the `temp_audio` directory
 2. Orders files by segment_ids (if provided) or using natural sort (handles numbers properly, e.g., `segment-2.mp3` comes before `segment-10.mp3`)
-3. Uses FFmpeg's concat demuxer to stitch files together
-4. Outputs a single MP3 file to the `output` directory
-5. Returns metadata about the stitched file
+3. Uses FFmpeg's concat filter to stitch files together (robust handling of mixed formats)
+4. Normalizes all audio to consistent format (48kHz, stereo, MP3)
+5. Outputs a single MP3 file to the `output` directory
+6. Returns metadata about the stitched file
 
 ### Technical Details
 
 - **Supported audio formats:** mp3, wav, aac, opus, flac, m4a
-- **FFmpeg command:** Uses `-c copy` for fast concatenation without re-encoding
-- **File list:** Creates a temporary `concat_list.txt` file for FFmpeg, which is automatically cleaned up
+- **Mixed format support:** Robustly handles any combination of audio formats, sample rates, and channel configurations
+- **Output format:** MP3 encoded with libmp3lame at 192 kbps, 48kHz sample rate, stereo
+- **FFmpeg method:** Uses concat filter (not demuxer) for maximum compatibility with mixed formats
+- **Normalization:** Automatically normalizes all inputs to consistent format during concatenation
 

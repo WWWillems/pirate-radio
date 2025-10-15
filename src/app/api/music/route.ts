@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-// @ts-expect-error - Gradio client types are not fully available
-import { client } from "@gradio/client";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { randomUUID } from "crypto";
+import { GoogleAuth } from "google-auth-library";
 
 // Directory to store temporary audio files
 const TEMP_AUDIO_DIR = path.join(process.cwd(), "temp_audio");
@@ -16,8 +15,7 @@ export async function POST(request: NextRequest) {
       prompt,
       duration = 30, // Duration in seconds
       segment_id, // Optional: unique segment ID to use as filename
-      steps = 50, // Number of inference steps
-      cfg_scale = 7.5, // Classifier-free guidance scale
+      temperature = 1.0, // Controls randomness (0-2)
     } = body;
 
     // Validate required parameters
@@ -36,58 +34,116 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Generating music with ACE-Step...");
-    console.log("Prompt:", prompt);
-    console.log("Duration:", duration);
-    console.log("Steps:", steps);
-    console.log("CFG Scale:", cfg_scale);
+    // Validate required environment variables for Vertex AI
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+    const location = process.env.GOOGLE_CLOUD_LOCATION || "us-central1";
 
-    // Connect to the Hugging Face Space
-    const app = await client("ACE-Step/ACE-Step");
+    if (!projectId) {
+      return NextResponse.json(
+        { error: "GOOGLE_CLOUD_PROJECT_ID not configured" },
+        { status: 500 }
+      );
+    }
 
-    // Call the prediction API
-    const result = await app.predict("/__call__", {
-      prompt: prompt,
-      lyrics: "",
-      audio_duration: duration,
-      infer_step: 60,
-      //cfg_scale: cfg_scale,
+    // Initialize Google Auth - it will automatically use:
+    // 1. GOOGLE_APPLICATION_CREDENTIALS env var pointing to service account key
+    // 2. Application Default Credentials (ADC) from gcloud
+    // 3. Compute Engine metadata server if running on GCP
+    const auth = new GoogleAuth({
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
     });
 
-    // The result should contain the audio file
-    // @ts-ignore - Gradio client types can be complex
-    const audioData = result.data;
+    // Get a fresh access token (handles automatic refresh)
+    const accessToken = await auth.getAccessToken();
 
-    if (!audioData || !audioData[0]) {
-      throw new Error("No audio data received from the model");
+    if (!accessToken) {
+      return NextResponse.json(
+        {
+          error: "Failed to obtain access token",
+          details:
+            "Set GOOGLE_APPLICATION_CREDENTIALS to your service account key file path, or run 'gcloud auth application-default login'",
+        },
+        { status: 500 }
+      );
     }
 
-    // Get the audio file URL or data
-    // @ts-ignore
-    const audioUrl = audioData[0].url || audioData[0];
+    console.log("Generating music with Google Lyria via Vertex AI...");
+    console.log("Prompt:", prompt);
+    console.log("Duration:", duration);
+    console.log("Temperature:", temperature);
+    console.log("Project ID:", projectId);
+    console.log("Location:", location);
 
-    // Download the audio file if it's a URL
-    let buffer: Buffer;
+    // Vertex AI endpoint for Lyria
+    const apiUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/lyria-002:predict`;
 
-    if (typeof audioUrl === "string" && audioUrl.startsWith("http")) {
-      console.log("Downloading audio from:", audioUrl);
-      const response = await fetch(audioUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to download audio: ${response.statusText}`);
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      buffer = Buffer.from(arrayBuffer);
+    // Generate a random seed for reproducibility (optional)
+    const seed = Math.floor(Math.random() * 100000);
+
+    const requestBody = {
+      instances: [
+        {
+          prompt: prompt,
+          seed: seed,
+          // Note: Lyria may have duration parameters, adjust as needed
+        },
+      ],
+    };
+
+    console.log("Making request to Vertex AI Lyria API...");
+    console.log("API URL:", apiUrl);
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Vertex AI Error:", errorText);
+      throw new Error(`Vertex AI error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log("Vertex AI Response:", JSON.stringify(result, null, 2));
+
+    // Extract audio data from Vertex AI response
+    // The response format may vary, typically: { predictions: [{ content: "base64..." }] }
+    if (!result.predictions || result.predictions.length === 0) {
+      throw new Error("No predictions received from Vertex AI Lyria");
+    }
+
+    const prediction = result.predictions[0];
+
+    // Try different possible response formats
+    let audioBase64;
+    if (prediction.content) {
+      audioBase64 = prediction.content;
+    } else if (prediction.audio) {
+      audioBase64 = prediction.audio;
+    } else if (prediction.audioContent) {
+      audioBase64 = prediction.audioContent;
+    } else if (prediction.bytesBase64Encoded) {
+      audioBase64 = prediction.bytesBase64Encoded;
+    } else if (typeof prediction === "string") {
+      audioBase64 = prediction;
     } else {
-      // If it's already a buffer or data
-      buffer = Buffer.from(audioUrl);
+      console.error("Unexpected prediction format:", prediction);
+      throw new Error("Unable to extract audio from Vertex AI response");
     }
+
+    const buffer = Buffer.from(audioBase64, "base64");
 
     // Ensure temp directory exists
     await fs.mkdir(TEMP_AUDIO_DIR, { recursive: true });
 
     // Generate unique filename - use segment_id if provided, otherwise generate random UUID
     const fileId = segment_id || randomUUID();
-    const filename = `${fileId}.mp3`;
+    const filename = `${fileId}.wav`;
     const filepath = path.join(TEMP_AUDIO_DIR, filename);
 
     // Save the audio file to server
@@ -105,19 +161,31 @@ export async function POST(request: NextRequest) {
       type: "music",
       prompt,
       duration,
-      steps,
-      cfg_scale,
+      temperature,
+      model: "google-lyria",
       ...(segment_id && { segment_id }), // Include segment_id if provided
     });
   } catch (error: any) {
     console.error("Error generating music:", error);
 
     // Handle specific errors
-    if (error?.message?.includes("connect")) {
+    if (error?.message?.includes("401") || error?.message?.includes("403")) {
       return NextResponse.json(
         {
-          error: "Failed to connect to Hugging Face Space",
+          error: "Failed to authenticate with Vertex AI",
           details: error?.message || "Unknown error",
+          hint: "Set GOOGLE_APPLICATION_CREDENTIALS environment variable to your service account key file path, or run 'gcloud auth application-default login'",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (error?.message?.includes("404")) {
+      return NextResponse.json(
+        {
+          error: "Vertex AI Lyria model not found",
+          details: error?.message || "Unknown error",
+          hint: "Verify the model name (lyria-002) and that it's available in your project region",
         },
         { status: 503 }
       );

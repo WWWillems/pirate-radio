@@ -1,6 +1,6 @@
 # Music Generation API Endpoint
 
-This endpoint uses the **ACE-Step/ACE-Step** model from Hugging Face Spaces to generate music based on text prompts.
+This endpoint uses **Google's Lyria** model to generate music based on text prompts via the Vercel AI SDK.
 
 ## Endpoint
 
@@ -8,10 +8,66 @@ This endpoint uses the **ACE-Step/ACE-Step** model from Hugging Face Spaces to g
 
 ## Model Information
 
-- **Model**: ACE-Step/ACE-Step
+- **Model**: Google Lyria
 - **Type**: Text-to-Music Generation
-- **Source**: Hugging Face Spaces
-- **Client**: @gradio/client
+- **Source**: Google Generative AI API
+- **SDK**: @ai-sdk/google (Vercel AI SDK)
+
+## Setup
+
+This endpoint uses **Google Vertex AI** to access the Lyria model. You need to configure the following environment variables:
+
+### Required Environment Variables
+
+```bash
+# Add to your .env.local file
+
+# Your Google Cloud Project ID
+GOOGLE_CLOUD_PROJECT_ID=your-project-id
+
+# Optional: Specify the region (defaults to us-central1)
+GOOGLE_CLOUD_LOCATION=us-central1
+```
+
+### Authentication
+
+The endpoint uses the Google Auth Library which automatically handles authentication. You have two options:
+
+#### Option 1: Service Account Key File (Recommended for Development)
+
+1. Download your service account key file from Google Cloud Console
+2. Add the path to your `.env.local`:
+
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/your-service-account-key.json
+```
+
+#### Option 2: Application Default Credentials
+
+Run the following command to authenticate with gcloud:
+
+```bash
+# Install gcloud CLI (if not already installed)
+# Visit: https://cloud.google.com/sdk/docs/install
+
+# Authenticate with Application Default Credentials
+gcloud auth application-default login
+```
+
+No additional environment variables are needed with this method.
+
+### Quick Setup Script
+
+You can use the provided setup script to configure everything automatically:
+
+```bash
+./src/app/api/music/setup-env.sh
+```
+
+This script will guide you through:
+- Setting up your Google Cloud project
+- Choosing your authentication method
+- Configuring environment variables
 
 ## Request Body Parameters
 
@@ -27,12 +83,11 @@ This endpoint uses the **ACE-Step/ACE-Step** model from Hugging Face Spaces to g
   - Default: `30`
   - Range: 1-300 seconds
   
-- `steps` (number): Number of inference steps (higher = better quality but slower)
-  - Default: `50`
-  
-- `cfg_scale` (number): Classifier-free guidance scale (controls how closely the model follows the prompt)
-  - Default: `7.5`
-  - Higher values = more adherence to prompt
+- `temperature` (number): Controls randomness and creativity in generation
+  - Default: `1.0`
+  - Range: 0-2
+  - Lower values = more predictable output
+  - Higher values = more creative/varied output
   
 - `segment_id` (string): Optional unique identifier to use as the filename
   - If not provided, a random UUID will be generated
@@ -45,8 +100,7 @@ curl -X POST http://localhost:3000/api/music \
   -d '{
     "prompt": "upbeat electronic music with drums and synthesizers",
     "duration": 45,
-    "steps": 50,
-    "cfg_scale": 7.5,
+    "temperature": 1.2,
     "segment_id": "my-music-001"
   }'
 ```
@@ -65,8 +119,8 @@ curl -X POST http://localhost:3000/api/music \
   "type": "music",
   "prompt": "upbeat electronic music with drums and synthesizers",
   "duration": 45,
-  "steps": 50,
-  "cfg_scale": 7.5,
+  "temperature": 1.2,
+  "model": "google-lyria",
   "segment_id": "my-music-001"
 }
 ```
@@ -89,8 +143,8 @@ curl -X POST http://localhost:3000/api/music \
 #### 503 - Service Unavailable
 ```json
 {
-  "error": "Failed to connect to Hugging Face Space",
-  "details": "Connection timeout"
+  "error": "Failed to authenticate with Google API",
+  "details": "Invalid API key"
 }
 ```
 
@@ -114,8 +168,7 @@ async function generateMusic(prompt, options = {}) {
     body: JSON.stringify({
       prompt,
       duration: options.duration || 30,
-      steps: options.steps || 50,
-      cfg_scale: options.cfg_scale || 7.5,
+      temperature: options.temperature || 1.0,
       segment_id: options.segment_id,
     }),
   });
@@ -132,10 +185,11 @@ async function generateMusic(prompt, options = {}) {
 try {
   const result = await generateMusic(
     "calm piano music for a rainy day",
-    { duration: 60, segment_id: "rainy-day-music" }
+    { duration: 60, temperature: 0.8, segment_id: "rainy-day-music" }
   );
   console.log('Music generated:', result.filename);
   console.log('File path:', result.filepath);
+  console.log('Model used:', result.model);
 } catch (error) {
   console.error('Error:', error.message);
 }
@@ -144,14 +198,16 @@ try {
 ## Notes
 
 - Generated audio files are saved to the `temp_audio` directory
-- The endpoint uses the Hugging Face Spaces API, so generation time may vary based on:
-  - Model availability
-  - Queue position
-  - Number of inference steps
+- The endpoint uses Google's Vertex AI API, so generation time may vary based on:
+  - API availability
+  - Request queue
   - Duration of the music
-- Typical generation time: 30-60 seconds for a 30-second audio clip
+- Typical generation time: 10-30 seconds for a 30-second audio clip
 - The audio format is always MP3
-- Make sure you have a stable internet connection as the model is hosted on Hugging Face Spaces
+- Make sure you have a valid Google Cloud project with Vertex AI enabled
+- Authentication is handled automatically by the Google Auth Library (no manual token refresh needed)
+- The Lyria model must be available in your selected region
+- The Lyria model is optimized for high-quality music generation with natural-sounding instruments and compositions
 
 ## Integration with Orchestration
 
@@ -176,4 +232,5 @@ for (const segment of musicSegments) {
   // Use result.filepath for stitching
 }
 ```
+
 

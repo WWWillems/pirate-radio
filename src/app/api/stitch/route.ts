@@ -142,33 +142,32 @@ export async function POST(request: NextRequest) {
     const outputFilename = `${slugifiedName}-${dateStr}.mp3`;
     const outputPath = path.join(OUTPUT_DIR, outputFilename);
 
-    // Create a temporary file list for ffmpeg
-    const fileListPath = path.join(TEMP_AUDIO_DIR, "concat_list.txt");
-    const fileListContent = audioFiles
-      .map((file) => `file '${path.join(TEMP_AUDIO_DIR, file)}'`)
-      .join("\n");
-
-    await fs.writeFile(fileListPath, fileListContent);
-
     console.log("Stitching audio files with ffmpeg...");
     console.log(`Output: ${outputFilename}`);
 
     try {
-      // Use ffmpeg to concatenate files
-      // -f concat: use concat demuxer
-      // -safe 0: allow absolute paths
-      // -i: input file list
-      // -c copy: copy codec (fast, no re-encoding)
-      const ffmpegCommand = `ffmpeg -f concat -safe 0 -i "${fileListPath}" -c copy "${outputPath}" -y`;
+      // Build ffmpeg command using concat filter (more robust for mixed formats)
+      // This approach:
+      // 1. Loads each file as a separate input
+      // 2. Uses the concat filter to combine them
+      // 3. Normalizes sample rate, channels, and codec
+      // 4. Works with any mix of WAV, MP3, and other audio formats
+
+      const inputs = audioFiles
+        .map((file) => `-i "${path.join(TEMP_AUDIO_DIR, file)}"`)
+        .join(" ");
+      const filterComplex = `[0:a]${audioFiles
+        .slice(1)
+        .map((_, i) => `[${i + 1}:a]`)
+        .join("")}concat=n=${audioFiles.length}:v=0:a=1[outa]`;
+
+      const ffmpegCommand = `ffmpeg ${inputs} -filter_complex "${filterComplex}" -map "[outa]" -c:a libmp3lame -b:a 192k -ar 48000 -ac 2 "${outputPath}" -y`;
 
       const { stdout, stderr } = await execAsync(ffmpegCommand);
 
       // Log ffmpeg output for debugging
       if (stdout) console.log("FFmpeg stdout:", stdout);
       if (stderr) console.log("FFmpeg stderr:", stderr);
-
-      // Clean up the temporary file list
-      await fs.unlink(fileListPath);
 
       // Get file stats
       const stats = await fs.stat(outputPath);
@@ -186,11 +185,6 @@ export async function POST(request: NextRequest) {
       });
     } catch (error: any) {
       console.error("FFmpeg error:", error);
-
-      // Clean up the temporary file list if it exists
-      try {
-        await fs.unlink(fileListPath);
-      } catch {}
 
       // Check if ffmpeg is not installed
       if (
