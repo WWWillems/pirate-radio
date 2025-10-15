@@ -2,21 +2,12 @@
 
 import { useState } from 'react';
 import ttsSystemPrompt from '../const/tts-system-prompt';
+import generationPrompt from '../const/generation-prompt';
 
 export default function TextToSpeechDemo() {
+  const [activeTab, setActiveTab] = useState<'controls' | 'visualizer'>('controls');
   const [systemPrompt, setSystemPrompt] = useState(ttsSystemPrompt);
-  const [prompt, setPrompt] = useState(
-    `Generate a concise and natural-sounding script for a radio show about Nova Scotia, Canada.
-Write it like a cozy, lively morning radio show between two friendly hosts who genuinely enjoy talking together.
-Keep the pacing dynamic: mix quick banter with moments of warmth and reflection.
-Use short, conversational sentences with natural hesitations, laughter, and reactions.
-Include small imperfections — unfinished thoughts, interruptions, or filler words (“you know”, “I mean”).
-Make it sound spontaneous, human, and emotionally warm rather than scripted.
-Each host should respond to what the other says, creating a real back-and-forth rhythm.
-
-HOST has an upbeat, curious tone. GUEST is calm, witty, and playful. Their chemistry should feel natural and familiar.
-    `
-  );
+  const [prompt, setPrompt] = useState(generationPrompt);
   const [text, setText] = useState(
     ''
   );
@@ -280,13 +271,50 @@ HOST has an upbeat, curious tone. GUEST is calm, witty, and playful. Their chemi
     }
   };
 
+  // Parse PAP from text
+  const parsePAP = () => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  };
+
+  const pap = parsePAP();
+
   return (
     <div className="min-h-screen p-8 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">🏴‍☠️ Pirate Radio</h1>
 
-      <div className="space-y-6">
-        {/* System Prompt Input */}
-        <div>
+      {/* Tab Navigation */}
+      <div className="flex gap-2 mb-6 border-b">
+        <button
+          onClick={() => setActiveTab('controls')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeTab === 'controls'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Controls
+        </button>
+        <button
+          onClick={() => setActiveTab('visualizer')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeTab === 'visualizer'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          PAP Visualizer
+        </button>
+      </div>
+
+      {/* Controls Tab */}
+      {activeTab === 'controls' && (
+        <div className="space-y-6">
+          {/* System Prompt Input */}
+          <div>
           <label className="block text-sm font-medium mb-2">
             System Prompt
           </label>
@@ -500,7 +528,170 @@ HOST has an upbeat, curious tone. GUEST is calm, witty, and playful. Their chemi
             {loading ? 'Generating...' : '⬇️ Download'}
           </button>
         </div>
-      </div>
+        </div>
+      )}
+
+      {/* PAP Visualizer Tab */}
+      {activeTab === 'visualizer' && (
+        <div className="space-y-6">
+          {!pap ? (
+            <div className="p-8 bg-gray-900 border-2 border-dashed border-gray-700 rounded-lg text-center">
+              <p className="text-gray-400 text-lg mb-2">No PAP to visualize</p>
+              <p className="text-gray-500 text-sm">
+                Generate or paste a PAP JSON in the Controls tab to see it visualized here
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Episode Header */}
+              <div className="bg-gradient-to-r from-purple-900/40 to-pink-900/40 border border-purple-700/50 rounded-lg p-6">
+                <h2 className="text-2xl font-bold text-purple-200 mb-2">
+                  {pap.title || 'Untitled Episode'}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="font-semibold text-purple-300">Episode ID:</span>{' '}
+                    <span className="text-purple-400">{pap.episode_id || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-purple-300">Total Segments:</span>{' '}
+                    <span className="text-purple-400">{pap.segments?.length || 0}</span>
+                  </div>
+                </div>
+                {pap.description && (
+                  <p className="mt-3 text-purple-300 italic">{pap.description}</p>
+                )}
+              </div>
+
+              {/* Segments Timeline */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-bold text-gray-200">Segments</h3>
+                {pap.segments?.map((segment: any, index: number) => {
+                  const isDialogue = segment.type === 'dialogue';
+                  const isMusic = segment.type === 'music';
+                  const isAd = segment.type === 'ad';
+                  
+                  let bgColor = 'bg-gray-800/50';
+                  let borderColor = 'border-gray-600';
+                  let textColor = 'text-gray-200';
+                  let iconColor = 'text-gray-400';
+                  let badgeBgColor = 'bg-gray-700';
+                  let icon = '📄';
+                  
+                  if (isDialogue) {
+                    bgColor = 'bg-blue-900/30';
+                    borderColor = 'border-blue-700/50';
+                    textColor = 'text-blue-200';
+                    iconColor = 'text-blue-400';
+                    badgeBgColor = 'bg-blue-800';
+                    icon = '💬';
+                  } else if (isMusic) {
+                    bgColor = 'bg-green-900/30';
+                    borderColor = 'border-green-700/50';
+                    textColor = 'text-green-200';
+                    iconColor = 'text-green-400';
+                    badgeBgColor = 'bg-green-800';
+                    icon = '🎵';
+                  } else if (isAd) {
+                    bgColor = 'bg-yellow-900/30';
+                    borderColor = 'border-yellow-700/50';
+                    textColor = 'text-yellow-200';
+                    iconColor = 'text-yellow-400';
+                    badgeBgColor = 'bg-yellow-800';
+                    icon = '📢';
+                  }
+
+                  return (
+                    <div
+                      key={segment.id || index}
+                      className={`${bgColor} border ${borderColor} rounded-lg p-4 relative`}
+                    >
+                      {/* Segment Number Badge */}
+                      <div className={`absolute -left-3 -top-3 w-8 h-8 ${badgeBgColor} ${textColor} rounded-full flex items-center justify-center font-bold text-sm border-2 border-black`}>
+                        {index + 1}
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className={`text-2xl ${iconColor}`}>{icon}</div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`${textColor} font-bold text-lg uppercase`}>
+                              {segment.type}
+                            </span>
+                            {segment.id && (
+                              <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                                {segment.id}
+                              </span>
+                            )}
+                          </div>
+
+                          {isDialogue && (
+                            <>
+                              {segment.speaker && (
+                                <div className={`${iconColor} font-semibold text-sm mb-1`}>
+                                  Speaker: {segment.speaker}
+                                </div>
+                              )}
+                              {segment.text && (
+                                <p className={`${textColor} mb-2`}>{segment.text}</p>
+                              )}
+                              {segment.tts_voice && (
+                                <div className="flex gap-2 flex-wrap">
+                                  <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                                    Voice: {segment.tts_voice}
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          )}
+
+                          {isMusic && (
+                            <>
+                              {segment.role && (
+                                <div className={`${iconColor} font-semibold text-sm mb-1`}>
+                                  Role: {segment.role}
+                                </div>
+                              )}
+                              {segment.prompt && (
+                                <p className={`${textColor} mb-2 italic`}>
+                                  "{segment.prompt}"
+                                </p>
+                              )}
+                              {segment.engine && (
+                                <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                                  Engine: {segment.engine}
+                                </span>
+                              )}
+                            </>
+                          )}
+
+                          {isAd && (
+                            <>
+                              {segment.advertiser && (
+                                <div className={`${iconColor} font-semibold text-sm mb-1`}>
+                                  Advertiser: {segment.advertiser}
+                                </div>
+                              )}
+                              {segment.text && (
+                                <p className={`${textColor} mb-2`}>{segment.text}</p>
+                              )}
+                              {segment.tts_voice && (
+                                <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                                  Voice: {segment.tts_voice}
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       
     </div>
