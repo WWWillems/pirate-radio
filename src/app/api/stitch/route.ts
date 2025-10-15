@@ -35,6 +35,39 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Natural sort comparison function for strings with embedded numbers
+ * Properly sorts "segment-2.mp3" before "segment-10.mp3"
+ */
+function naturalSort(a: string, b: string): number {
+  const regex = /(\d+)|(\D+)/g;
+  const aParts = a.match(regex) || [];
+  const bParts = b.match(regex) || [];
+
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const aPart = aParts[i] || "";
+    const bPart = bParts[i] || "";
+
+    // If both parts are numbers, compare numerically
+    const aNum = Number(aPart);
+    const bNum = Number(bPart);
+
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      if (aNum !== bNum) {
+        return aNum - bNum;
+      }
+    } else {
+      // Otherwise compare as strings
+      const comparison = aPart.localeCompare(bPart);
+      if (comparison !== 0) {
+        return comparison;
+      }
+    }
+  }
+
+  return 0;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -84,8 +117,8 @@ export async function POST(request: NextRequest) {
       }
       audioFiles = orderedFiles;
     } else {
-      // Sort files naturally if no segment_ids provided
-      audioFiles.sort();
+      // Sort files naturally if no segment_ids provided (handles numbers properly)
+      audioFiles.sort(naturalSort);
     }
 
     if (audioFiles.length === 0) {

@@ -1,32 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import ttsSystemPrompt from '../const/tts-system-prompt';
 
 export default function TextToSpeechDemo() {
-  const [systemPrompt, setSystemPrompt] = useState(
-    `You are a creative radio host who writes engaging and entertaining Podcast Assembly Plans (PAP). The podcast assembly plan describes the structure and timeline for the generated podcast in a predefined JSON format.
-    
-    You are an expert podcast producer. Generate a detailed Podcast Assembly Plan (PAP) that strictly adheres to the following requirements:
-
-    SEGMENT TYPES:
-    1. dialogue - Requires: speaker (e.g., HOST, WILLIAM, HAROLD), text, and tts_voice
-    2. music - Requires: role (intro_jingle/background/outro_jingle/transition), prompt, and engine (sora/udio/elevenlabs)
-    3. ad - Requires: text and tts_voice
-
-    VALID TTS VOICES: alloy, echo, fable, onyx, nova, shimmer, verse, coral
-
-    IMPORTANT RULES:
-    - Every dialogue segment MUST have a tts_voice field
-    - Every ad segment MUST have a tts_voice field
-    - Each segment MUST have a unique id
-    - Use consistent speakers throughout the episode
-    - Assign distinct voices to different speakers for variety
-
-    Be creative and engaging while maintaining the schema structure.
-    `
-  );
+  const [systemPrompt, setSystemPrompt] = useState(ttsSystemPrompt);
   const [prompt, setPrompt] = useState(
-    'Generate a concise script for a radio show about Nova Scotia, Canada.'
+    `Generate a concise and natural-sounding script for a radio show about Nova Scotia, Canada.
+Write it like a cozy, lively morning radio show between two friendly hosts who genuinely enjoy talking together.
+Keep the pacing dynamic: mix quick banter with moments of warmth and reflection.
+Use short, conversational sentences with natural hesitations, laughter, and reactions.
+Include small imperfections — unfinished thoughts, interruptions, or filler words (“you know”, “I mean”).
+Make it sound spontaneous, human, and emotionally warm rather than scripted.
+Each host should respond to what the other says, creating a real back-and-forth rhythm.
+
+HOST has an upbeat, curious tone. GUEST is calm, witty, and playful. Their chemistry should feel natural and familiar.
+    `
   );
   const [text, setText] = useState(
     ''

@@ -97,7 +97,7 @@ curl -X POST http://localhost:3000/api/stitch \
 ### How It Works
 
 1. Reads audio files from the `temp_audio` directory
-2. Orders files by segment_ids (if provided) or alphabetically
+2. Orders files by segment_ids (if provided) or using natural sort (handles numbers properly, e.g., `segment-2.mp3` comes before `segment-10.mp3`)
 3. Uses FFmpeg's concat demuxer to stitch files together
 4. Outputs a single MP3 file to the `output` directory
 5. Returns metadata about the stitched file
