@@ -125,6 +125,13 @@
     eventsource-parser "^1.1.2"
     robot3 "^0.4.1"
 
+"@gradio/client@^2.0.0-dev.0":
+  version "2.0.0-dev.0"
+  resolved "https://registry.yarnpkg.com/@gradio/client/-/client-2.0.0-dev.0.tgz#5176fb6ada28abd880bf1819d3fd81c0dda0e3c6"
+  integrity sha512-ddVt6I/LWX5hvIY8GjgliMo6WfGe5Ahp9S951502WpN9o6tkAXNnvX+QALnFYoW7ecK4vI6WaxXetF8lzACrhw==
+  dependencies:
+    fetch-event-stream "^0.1.5"
+
 "@img/colour@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@img/colour/-/colour-1.0.0.tgz#d2fabb223455a793bf3bf9c70de3d28526aa8311"
@@ -577,6 +584,11 @@ eventsource-parser@^3.0.5:
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/eventsource-parser/-/eventsource-parser-3.0.6.tgz#292e165e34cacbc936c3c92719ef326d4aeb4e90"
   integrity sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==
+
+fetch-event-stream@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/fetch-event-stream/-/fetch-event-stream-0.1.5.tgz#ffc5a8f57a040e3eb78d9f990632c2a3fd253c02"
+  integrity sha512-V1PWovkspxQfssq/NnxoEyQo1DV+MRK/laPuPblIZmSjMN8P5u46OhlFQznSr9p/t0Sp8Uc6SbM3yCMfr0KU8g==
 
 graceful-fs@^4.2.4:
   version "4.2.11"

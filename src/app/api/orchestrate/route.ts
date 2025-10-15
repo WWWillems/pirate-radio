@@ -135,16 +135,51 @@ export async function POST(request: NextRequest) {
               segment.prompt.length > 100 ? "..." : ""
             }`
           );
-          console.log(`  → Will call: /api/music/${segment.engine}`);
-          console.log(
-            `    Payload: { prompt: "${segment.prompt}", role: "${segment.role}" }`
-          );
-          processedSegments.push({
-            segment_index: index,
-            type: "music",
-            status: "skipped",
-            note: "Music API not yet implemented",
-          });
+          console.log(`  → Calling: /api/music`);
+
+          try {
+            const musicResponse = await fetch(`${baseUrl}/api/music`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                prompt: segment.prompt,
+                duration: segment.duration_seconds || 3,
+                segment_id: segment.id,
+                steps: 50, // Default steps
+                cfg_scale: 7.5, // Default CFG scale
+              }),
+            });
+
+            if (!musicResponse.ok) {
+              const errorData = await musicResponse.json();
+              console.error(`    ✗ Music API call failed:`, errorData);
+              processedSegments.push({
+                segment_index: index,
+                type: "music",
+                status: "failed",
+                error: errorData,
+              });
+            } else {
+              const musicResult = await musicResponse.json();
+              console.log(`    ✓ Music generated: ${musicResult.filename}`);
+              processedSegments.push({
+                segment_index: index,
+                type: "music",
+                status: "success",
+                result: musicResult,
+              });
+            }
+          } catch (error: any) {
+            console.error(`    ✗ Music API call error:`, error.message);
+            processedSegments.push({
+              segment_index: index,
+              type: "music",
+              status: "error",
+              error: error.message,
+            });
+          }
           break;
 
         case "ad":
