@@ -35,7 +35,7 @@ The schema uses a **discriminated union** based on the `type` field. This means 
 }
 ```
 
-**Valid TTS Voices:** `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`, `verse`, `coral`
+**Valid TTS Voices:** `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer` 
 
 #### 2. Music Segment
 
@@ -214,7 +214,7 @@ segments.2.tts_voice: Required
 segments.1.tts_voice: Invalid enum value. Expected 'alloy' | 'echo' | ...
 ```
 
-**Fix:** Use one of the valid voices: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`, `verse`, `coral`
+**Fix:** Use one of the valid voices: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`
 
 ### Missing Segment ID
 

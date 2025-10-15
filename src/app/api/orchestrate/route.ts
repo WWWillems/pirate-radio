@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
               body: JSON.stringify({
                 text: segment.text,
                 voice: segment.tts_voice,
-                model: "tts-1",
+                //model: "tts-1",
                 type: segment.type, // Send segment type
                 segment_id: segment.id, // Send unique segment ID
               }),
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
               body: JSON.stringify({
                 text: segment.text,
                 voice: segment.tts_voice,
-                model: "tts-1",
+                //model: "tts-1",
                 type: segment.type, // Send segment type
                 segment_id: segment.id, // Send unique segment ID
               }),

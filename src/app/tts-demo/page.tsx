@@ -35,7 +35,7 @@ HOST has an upbeat, curious tone. GUEST is calm, witty, and playful. Their chemi
   const [stitchResult, setStitchResult] = useState<any>(null);
 
   const voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
-  const models = ['tts-1', 'tts-1-hd'];
+  const models = [ "gpt-4o-mini-tts", 'tts-1', 'tts-1-hd'];
   const formats = ['mp3', 'opus', 'aac', 'flac', 'wav'];
 
   const generateSpeech = async () => {

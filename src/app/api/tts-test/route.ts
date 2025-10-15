@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const {
       text,
       voice = "alloy", // Default voice
-      model = "tts-1", // or "tts-1-hd" for higher quality
+      model = "gpt-4o-mini-tts", // or "tts-1-hd" for higher quality
       speed = 1.0,
       response_format = "mp3", // mp3, opus, aac, flac, wav, or pcm
     } = body;

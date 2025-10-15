@@ -19,16 +19,7 @@ export const segmentSchema = z.discriminatedUnion("type", [
       .min(1)
       .describe("The dialogue text to be spoken - should be clear and natural"),
     tts_voice: z
-      .enum([
-        "alloy",
-        "echo",
-        "fable",
-        "onyx",
-        "nova",
-        "shimmer",
-        "verse",
-        "coral",
-      ])
+      .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
       .describe(
         "REQUIRED: The TTS voice to use. Assign consistent voices per speaker for continuity."
       ),
@@ -65,16 +56,7 @@ export const segmentSchema = z.discriminatedUnion("type", [
     type: z.literal("ad"),
     text: z.string().min(1).describe("The advertisement text to be spoken"),
     tts_voice: z
-      .enum([
-        "alloy",
-        "echo",
-        "fable",
-        "onyx",
-        "nova",
-        "shimmer",
-        "verse",
-        "coral",
-      ])
+      .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
       .describe(
         "REQUIRED: The TTS voice to use for the advertisement (typically a distinct voice)"
       ),
