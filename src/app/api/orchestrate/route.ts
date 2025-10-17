@@ -6,10 +6,16 @@ import {
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
+import path from "path";
+import * as fs from "fs/promises";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // empty the temp_audio directory
+    const tempAudioDir = path.join(process.cwd(), "temp_audio");
+    await fs.rmdir(tempAudioDir, { recursive: true });
 
     // Auto-generate IDs for segments that don't have them
     if (body.segments && Array.isArray(body.segments)) {

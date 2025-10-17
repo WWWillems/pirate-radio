@@ -155,8 +155,8 @@ export default function TextToSpeechDemo() {
         body: JSON.stringify({
           prompt: prompt,
           system: systemPrompt,
-          temperature: 0.8,
-          maxTokens: 150,
+          //temperature: 0.8,
+          //maxTokens: 150,
         }),
       });
 

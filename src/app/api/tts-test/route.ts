@@ -57,6 +57,9 @@ export async function POST(request: NextRequest) {
       voice: voice,
       input: text,
       speed: speed,
+      instructions: `
+      Use the emotional cues in parentheses to indicate the speaker's emotion, but never mention them in the speech.
+Use natural pauses and hesitations.`,
       response_format: response_format,
     });
 
