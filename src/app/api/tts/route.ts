@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Validate segment type if provided
     if (type) {
-      const validTypes = ["dialogue", "ad", "music"];
+      const validTypes = ["dialogue", "ad", "music", "weather"];
       if (!validTypes.includes(type)) {
         return NextResponse.json(
           {

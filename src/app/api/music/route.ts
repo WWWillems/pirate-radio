@@ -204,7 +204,7 @@ function enhanceMusicPrompt(prompt: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Body:", body);
+
     const {
       prompt,
       duration = 30, // Duration in seconds
@@ -302,7 +302,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Vertex AI Error:", errorText);
+      console.error("Vertex AI Error for prompt: ", prompt, errorText);
       throw new Error(`Vertex AI error: ${response.status} - ${errorText}`);
     }
 

@@ -243,6 +243,57 @@ export async function POST(request: NextRequest) {
           }
           break;
 
+        case "weather":
+          console.log(`  Type: Weather`);
+          console.log(`  Voice: ${segment.tts_voice}`);
+          console.log(`  Text: ${segment.text}`);
+          console.log(`  → Calling: /api/weather`);
+
+          try {
+            const ttsResponse = await fetch(`${baseUrl}/api/tts`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                text: segment.text,
+                voice: segment.tts_voice,
+                //model: "tts-1",
+                type: segment.type, // Send segment type
+                segment_id: segment.id, // Send unique segment ID
+              }),
+            });
+
+            if (!ttsResponse.ok) {
+              const errorData = await ttsResponse.json();
+              console.error(`    ✗ TTS API call failed:`, errorData);
+              processedSegments.push({
+                segment_index: index,
+                type: "weather",
+                status: "failed",
+                error: errorData,
+              });
+            } else {
+              const ttsResult = await ttsResponse.json();
+              console.log(`    ✓ TTS generated: ${ttsResult.filename}`);
+              processedSegments.push({
+                segment_index: index,
+                type: "weather",
+                status: "success",
+                result: ttsResult,
+              });
+            }
+          } catch (error: any) {
+            console.error(`    ✗ TTS API call error:`, error.message);
+            processedSegments.push({
+              segment_index: index,
+              type: "weather",
+              status: "error",
+              error: error.message,
+            });
+          }
+          break;
+
         default:
           console.log(`  Type: Unknown`);
           console.log(`  → Will skip: Unknown segment type`);

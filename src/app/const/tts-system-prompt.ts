@@ -49,6 +49,9 @@ STRUCTURE RULES:
 - Each segment MUST have a unique id.
 - Use consistent speakers and distinct voices for variety.
 - Output must be valid JSON.
+- Music, weather and ad segments must be announced by the host.
+- Weather segment voice should be different from the host and guest voices.
+- Ad segment voice should be different from the host and guest voices.
 `;
 
 export default ttsSystemPrompt;

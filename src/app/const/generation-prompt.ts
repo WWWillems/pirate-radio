@@ -56,13 +56,22 @@ CONTENT DEPTH - Make it interesting and substantive:
 - Avoid generic statements like "Nova Scotia is beautiful" - instead describe WHAT makes it beautiful with specific sensory details
 - If discussing history or culture, include a specific story or moment that brings it to life
 
-IMPORTANT - For music segments:
-- Create SPECIFIC and UNIQUE music descriptions with detailed instrumentation
-- Avoid generic genre names alone (like "jazz" or "rock")
-- Include specific instruments, tempos, and moods
-- Make descriptions original and detailed enough to be clearly non-copyrighted
-- Example: Instead of "upbeat pop music", use "bright acoustic guitar with soft percussion and warm synth pads, moderate tempo, cheerful and welcoming"
-- Focus on instrumental characteristics, not artist names or song titles
+IMPORTATNT for music segments, follow these detailed requirements:
+- Be specific and original: Avoid vague or generic descriptions like “pop track” or “jazz loop.” Each piece should have a unique sonic identity.
+- Instrumentation: Clearly list the core instruments (e.g., acoustic guitar, piano, synth bass, cello, shakers) and mention any textural layers (e.g., ambient pads, rhythmic plucks, soft arpeggios).
+- Mood & energy: Describe the emotion and energy curve (e.g., “starts calm and reflective, grows into an inspiring crescendo, then gently fades”).
+- Tempo & rhythm: Include approximate tempo (slow, moderate, fast, e.g., 90 BPM) and note the rhythmic feel (e.g., swung, syncopated, straight, percussive).
+- Arrangement: Explicitly outline how the track evolves — its intro, build-up, climax, and resolution.
+    - Example: “Begins with solo piano and distant pads → introduces soft drums and bass halfway → builds to a layered chorus with strings and light cymbals → gradually strips back to piano-only outro.”
+- Avoid references to copyrighted works, artist names, or existing songs.
+- Focus on instrumentation and structure, not lyrics or vocals.
+- Keep each composition clearly distinct from others to avoid repetitive loops.
+
+Example prompt (good):
+“A cinematic piece starting with gentle piano and airy synths, gradually adding low strings and soft percussion. Midway, the tempo picks up with layered drums and warm brass accents, reaching a hopeful climax before tapering into a quiet harp and pad outro.”
+
+Example prompt (bad):
+“An epic soundtrack” or “pop beat loop.”
 `;
 
 export default generationPrompt;
