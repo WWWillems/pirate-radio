@@ -1,6 +1,6 @@
 import { podcastAssemblyPlanSchema } from "@/app/const/pap";
 import { openai } from "@ai-sdk/openai";
-import { generateObject, generateText, tool } from "ai";
+import { generateObject, generateText, stepCountIs, tool } from "ai";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -66,53 +66,13 @@ const tools = {
     execute: async ({ location }) => {
       console.log(`> TOOL CALL: Weather requested for: ${location}`);
 
-      // TODO: Integrate with a real weather API (e.g., OpenWeatherMap, WeatherAPI)
-      // Uncomment and configure when you add a weather API:
-      /*
-      const apiKey = process.env.WEATHER_API_KEY;
-      if (!apiKey) {
-        return {
-          location,
-          error: "Weather API key not configured",
-        };
-      }
-      
-      try {
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`
-        );
-        
-        if (!response.ok) {
-          return {
-            location,
-            error: `Weather API error: ${response.statusText}`,
-          };
-        }
-        
-        const data = await response.json();
-        return {
-          location,
-          temperature: `${data.main.temp}°C`,
-          feelsLike: `${data.main.feels_like}°C`,
-          condition: data.weather[0].description,
-          humidity: `${data.main.humidity}%`,
-          windSpeed: `${data.wind.speed} m/s`,
-        };
-      } catch (error) {
-        return {
-          location,
-          error: "Failed to fetch weather data",
-        };
-      }
-      */
+      const weatherResult = await fetch(
+        `https://rt.ambientweather.net/v1/devices?applicationKey=${process.env.AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${process.env.AMBIENT_WEATHER_API_KEY}`
+      );
 
-      // Placeholder response - replace with actual API call above
-      return {
-        location,
-        note: "Weather API not configured. Set WEATHER_API_KEY environment variable and uncomment the API code in route.ts",
-        temperature: "N/A",
-        condition: "Unknown",
-      };
+      const weatherResultJson = await weatherResult.json();
+      console.log(`> TOOL RESULT: Weather result:`, weatherResultJson);
+      return weatherResultJson?.[0];
     },
   }),
 };
@@ -143,28 +103,29 @@ export async function POST(request: NextRequest) {
     // Step 1: Use tools to gather context (date/time, weather, etc.)
     const contextResult = await generateText({
       model: openai(model),
-      system: defaultSystem,
       tools,
-      // Ask the model to summarize any tool results as compact JSON
-      prompt: `${prompt}\n\nIf helpful, call tools first. Then output ONLY a compact JSON object with keys you gathered (e.g., dateTime, dayOfWeek, weather: { location, temperature, condition }). Do not include any prose.`,
+      stopWhen: stepCountIs(5),
+      system: `You are a friendly and knowledgeable weather expert hosting the daily weather segment of a podcast.
+
+Your job is to:
+- Accurately retrieve and report the current date, time, and local weather conditions (temperature, wind, precipitation, etc.) for the specified location.
+- Present the information in a natural, conversational, and engaging tone, suitable for audio narration.
+- Optionally add brief contextual remarks (e.g., “Perfect day for a walk,” or “Better grab your umbrella!”) to make it sound human and relatable.
+- Keep your report concise (under 60 seconds), simple, friendly, and clear — like a morning radio host who’s both informative and entertaining.
+- Report in Celsius`,
+      prompt: `Get the current date and time using the getCurrentDateTime tool. Get the weather using the getCurrentWeather tool with location "Glenelg, Nova Scotia". Then write a brief 2-3 sentence natural description of the current date, time, and weather conditions.`,
     });
 
-    let contextJson: Record<string, unknown> = {};
-    try {
-      contextJson = JSON.parse(contextResult.text);
-    } catch {
-      // If the model didn't return JSON, proceed without extra context
-      contextJson = {};
-    }
+    const promptWithContext = `${prompt}\n\nCurrent date time and weather:\n${contextResult.text}`;
+
+    console.log(promptWithContext);
 
     // Step 2: Generate the validated structured object, injecting the gathered context
     const result = await generateObject({
       model: openai(model),
       schema: podcastAssemblyPlanSchema,
       system: defaultSystem,
-      prompt: `${prompt}\n\nContext (from tools):\n${JSON.stringify(
-        contextJson
-      )}`,
+      prompt: promptWithContext,
     });
 
     return Response.json(result.object);

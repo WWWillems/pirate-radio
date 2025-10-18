@@ -61,6 +61,18 @@ export const segmentSchema = z.discriminatedUnion("type", [
         "REQUIRED: The TTS voice to use for the advertisement (typically a distinct voice)"
       ),
   }),
+  z.object({
+    id: z
+      .string()
+      .describe(
+        "Unique identifier for this segment (e.g., 'segment-9', 'episode-001-weather-01')"
+      ),
+    type: z.literal("weather"),
+    text: z.string().min(1).describe("The weather text to be spoken"),
+    tts_voice: z
+      .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
+      .describe("The TTS voice to use for the weather"),
+  }),
 ]);
 
 export const podcastAssemblyPlanSchema = z.object({

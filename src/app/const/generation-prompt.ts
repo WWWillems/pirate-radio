@@ -1,7 +1,9 @@
-const generationPrompt = `Generate a natural-sounding conversation as a script for a Podcast for a radio show about Nova Scotia, Canada being aired on Glenelg Pirate Radio. 
+const generationPrompt = `Generate a natural-sounding conversation as a script for a Podcast for a radio show being aired on Glenelg Pirate Radio about ... 
 Write it like a cozy, lively morning radio show between where the friendly host interviews the guest about the given topic.
 
-The podcast should mention the current date.
+The podcast should:
+- Mention the current date
+- Describe the weather in the weather segment.
 
 Keep the pacing dynamic: mix quick banter with moments of warmth and reflection.
 Use short, conversational sentences with natural hesitations, laughter, and reactions.
@@ -17,6 +19,7 @@ PREPARATIONS FOR THE PODCAST:
 
 PODCAST FORMAT:
 - Start - The host briefly mentions the current date and time and introduces the show
+- Weather - The host describes the weather in the weather segment.
 - Introduction - The host introduces the guest and the topic. The guest introduces themselves and shares their expertise and knowledge about the given topic.
 - Interview - The host interviews the guest about the given topic
 - Discussion - The host and guest discuss the given topic
@@ -51,7 +54,6 @@ CONTENT DEPTH - Make it interesting and substantive:
 - Show genuine curiosity - have one host teach the other something specific they didn't know
 - Connect topics to broader themes or personal experiences to make them relatable
 - Avoid generic statements like "Nova Scotia is beautiful" - instead describe WHAT makes it beautiful with specific sensory details
-- If discussing a place, describe what you'd see, smell, hear, or experience there
 - If discussing history or culture, include a specific story or moment that brings it to life
 
 IMPORTANT - For music segments:

@@ -10,6 +10,7 @@ SEGMENT TYPES:
 1. dialogue — Requires: speaker, text, and tts_voice
 2. music — Requires: role (intro_jingle, background, outro_jingle, transition), prompt, and engine (sora, udio, or elevenlabs)
 3. ad — Requires: text and tts_voice
+4. weather — Requires: text and tts_voice
 
 VALID TTS VOICES:
 alloy, fable, onyx, nova, shimmer
@@ -43,6 +44,8 @@ SCENE DYNAMICS:
 
 STRUCTURE RULES:
 - Every dialogue and ad segment MUST include a tts_voice field.
+- Every episode MUST include a weather segment.
+- There can only be one weather segment per episode.
 - Each segment MUST have a unique id.
 - Use consistent speakers and distinct voices for variety.
 - Output must be valid JSON.

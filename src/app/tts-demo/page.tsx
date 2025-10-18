@@ -570,7 +570,8 @@ export default function TextToSpeechDemo() {
                   const isDialogue = segment.type === 'dialogue';
                   const isMusic = segment.type === 'music';
                   const isAd = segment.type === 'ad';
-                  
+                  const isWeather = segment.type === 'weather';
+                 
                   let bgColor = 'bg-gray-800/50';
                   let borderColor = 'border-gray-600';
                   let textColor = 'text-gray-200';
@@ -599,6 +600,13 @@ export default function TextToSpeechDemo() {
                     iconColor = 'text-yellow-400';
                     badgeBgColor = 'bg-yellow-800';
                     icon = '📢';
+                  }else if (isWeather) {
+                    bgColor = 'bg-gray-800/30';
+                    borderColor = 'border-gray-600/50';
+                    textColor = 'text-gray-200';
+                    iconColor = 'text-gray-400';
+                    badgeBgColor = 'bg-gray-700';
+                    icon = '🌤️';
                   }
 
                   return (
@@ -672,6 +680,19 @@ export default function TextToSpeechDemo() {
                                   Advertiser: {segment.advertiser}
                                 </div>
                               )}
+                              {segment.text && (
+                                <p className={`${textColor} mb-2`}>{segment.text}</p>
+                              )}
+                              {segment.tts_voice && (
+                                <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                                  Voice: {segment.tts_voice}
+                                </span>
+                              )}
+                            </>
+                          )}
+
+                          {isWeather && (
+                            <>{console.log(segment)}
                               {segment.text && (
                                 <p className={`${textColor} mb-2`}>{segment.text}</p>
                               )}
